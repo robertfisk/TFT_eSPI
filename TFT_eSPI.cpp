@@ -29,6 +29,8 @@
   #include "Processors/TFT_eSPI_STM32.c"
 #elif defined (ARDUINO_ARCH_RP2040)  || defined (ARDUINO_ARCH_MBED) // Raspberry Pi Pico
   #include "Processors/TFT_eSPI_RP2040.c"
+#elif defined (ARCH_NRF52)
+  #include "Processors/TFT_eSPI_NRF.c"
 #else
   #include "Processors/TFT_eSPI_Generic.c"
 #endif
@@ -6007,8 +6009,8 @@ void TFT_eSPI::getSetup(setup_t &tft_settings)
   tft_settings.tft_spi_freq = SPI_FREQUENCY/100000;
   #ifdef SPI_READ_FREQUENCY
     tft_settings.tft_rd_freq = SPI_READ_FREQUENCY/100000;
-  #endif
-  #ifndef GENERIC_PROCESSOR
+  #endif  
+  #if !defined(GENERIC_PROCESSOR) && !defined(ARCH_NRF52)
     #ifdef TFT_SPI_PORT
       tft_settings.port = TFT_SPI_PORT;
     #else
