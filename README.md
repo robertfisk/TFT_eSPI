@@ -1,3 +1,6 @@
+# About This Fork
+An attempt to optimise SPI performance on the nRF platform. Roughly 2x performance increase when using single-pixel transfers, and potentially much more with block transfers. Not using DMA at this point.
+
 A ["Discussions"](https://github.com/Bodmer/TFT_eSPI/discussions) facility has been added for Q&A etc. Use the ["Issues"](https://github.com/Bodmer/TFT_eSPI/issues) tab only for problems with the library. Thanks!
 # News
 1. The Create_font Processing sketch has been updated to automatically create a complete C header file. The automatic opening of the font folder can also be disabled within the Processing sketch. (Thanks to Pierre-Loup Martin).
