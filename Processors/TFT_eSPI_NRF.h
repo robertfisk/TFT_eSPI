@@ -1,4 +1,4 @@
-        ////////////////////////////////////////////////////
+////////////////////////////////////////////////////
         //       TFT_eSPI generic driver functions        //
         ////////////////////////////////////////////////////
 
@@ -22,9 +22,9 @@
 #define DMA_BUSY_CHECK // Not used so leave blank
 
 // To be safe, SUPPORT_TRANSACTIONS is assumed mandatory
-#if !defined (SUPPORT_TRANSACTIONS)
-  #define SUPPORT_TRANSACTIONS
-#endif
+// #if !defined (SUPPORT_TRANSACTIONS)
+//   #define SUPPORT_TRANSACTIONS
+// #endif
 
 // Initialise processor specific SPI functions, used by init()
 #define INIT_TFT_DATA_BUS
@@ -142,22 +142,15 @@
       spi.transfer(0); spi.transfer((C)>>8); \
       spi.transfer(0); spi.transfer((C)>>0)
 
-  #else
-    #define tft_Write_8(C)   spi.transfer(C)
-    #define tft_Write_16(C)  spi.transfer16(C)
-    #define tft_Write_16S(C) spi.transfer16(((C)>>8) | ((C)<<8))   
+  #else 
+    void tft_Write_8(uint8_t C);
+    void tft_Write_16(uint16_t C);
+    void tft_Write_16S(uint16_t C);
 
-    #define tft_Write_32(C) \
-    tft_Write_16((uint16_t) ((C)>>16)); \
-    tft_Write_16((uint16_t) ((C)>>0))
+    void tft_Write_32(uint32_t C);
+    void tft_Write_32C(uint32_t C, uint32_t D);
+    void tft_Write_32D(uint32_t C);
 
-    #define tft_Write_32C(C,D) \
-    tft_Write_16((uint16_t) (C)); \
-    tft_Write_16((uint16_t) (D))
-
-    #define tft_Write_32D(C) \
-    tft_Write_16((uint16_t) (C)); \
-    tft_Write_16((uint16_t) (C))
   #endif // RPI_DISPLAY_TYPE 
 #endif
 

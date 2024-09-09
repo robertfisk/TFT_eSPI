@@ -29,7 +29,7 @@
   #include "Processors/TFT_eSPI_STM32.c"
 #elif defined (ARDUINO_ARCH_RP2040)  || defined (ARDUINO_ARCH_MBED) // Raspberry Pi Pico
   #include "Processors/TFT_eSPI_RP2040.c"
-#elif defined (ARCH_NRF52)
+#elif defined (ARDUINO_NRF52_ADAFRUIT)
   #include "Processors/TFT_eSPI_NRF.c"
 #else
   #include "Processors/TFT_eSPI_Generic.c"
@@ -143,7 +143,7 @@ inline void TFT_eSPI::begin_tft_read(void){
     CS_L;
   }
 #else
-  #if !defined(TFT_PARALLEL_8_BIT) && !defined(RP2040_PIO_INTERFACE)
+  #if !defined(TFT_PARALLEL_8_BIT) && !defined(RP2040_PIO_INTERFACE) && !defined(ARDUINO_ARCH_NRF52)
     spi.setFrequency(SPI_READ_FREQUENCY);
   #endif
    CS_L;
@@ -165,7 +165,7 @@ inline void TFT_eSPI::end_tft_read(void){
     }
   }
 #else
-  #if !defined(TFT_PARALLEL_8_BIT) && !defined(RP2040_PIO_INTERFACE)
+  #if !defined(TFT_PARALLEL_8_BIT) && !defined(RP2040_PIO_INTERFACE) && !defined(ARDUINO_ARCH_NRF52)
     spi.setFrequency(SPI_FREQUENCY);
   #endif
    if(!inTransaction) {CS_H;}
@@ -676,6 +676,10 @@ void TFT_eSPI::init(uint8_t tc)
     pinMode(TFT_DC, OUTPUT);
     digitalWrite(TFT_DC, HIGH); // Data/Command high = data mode
   }
+#endif
+
+#ifndef SUPPORT_TRANSACTIONS
+    spi.beginTransaction(SPISettings(SPI_FREQUENCY, MSBFIRST, TFT_SPI_MODE));
 #endif
 
     _booted = false;
@@ -6010,7 +6014,7 @@ void TFT_eSPI::getSetup(setup_t &tft_settings)
   #ifdef SPI_READ_FREQUENCY
     tft_settings.tft_rd_freq = SPI_READ_FREQUENCY/100000;
   #endif  
-  #if !defined(GENERIC_PROCESSOR) && !defined(ARCH_NRF52)
+  #if !defined(GENERIC_PROCESSOR) && !defined(ARDUINO_NRF52_ADAFRUIT)
     #ifdef TFT_SPI_PORT
       tft_settings.port = TFT_SPI_PORT;
     #else
@@ -6157,4 +6161,3 @@ void TFT_eSPI::getSetup(setup_t &tft_settings)
   #include "Extensions/AA_graphics.cpp"  // Loaded if SMOOTH_FONT is defined by user
 #endif
 ////////////////////////////////////////////////////////////////////////////////////////
-

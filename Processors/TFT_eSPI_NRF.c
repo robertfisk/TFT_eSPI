@@ -1,4 +1,4 @@
-        ////////////////////////////////////////////////////
+////////////////////////////////////////////////////
         //       TFT_eSPI generic driver functions        //
         ////////////////////////////////////////////////////
 
@@ -134,25 +134,70 @@ void TFT_eSPI::pushPixels(const void* data_in, uint32_t len){
 #else //                   Standard SPI 16-bit colour TFT                               
 ////////////////////////////////////////////////////////////////////////////////////////
 
+#define BUFFER_LENGTH_UINT16 16
+
 /***************************************************************************************
 ** Function name:           pushBlock - for STM32
 ** Description:             Write a block of pixels of the same colour
 ***************************************************************************************/
-void TFT_eSPI::pushBlock(uint16_t color, uint32_t len){
+void TFT_eSPI::pushBlock(uint16_t color, uint32_t len) {
 
-  while ( len-- ) {tft_Write_16(color);}
+  uint32_t i;
+  union {
+    uint16_t val;
+    struct {
+      uint8_t lsb;
+      uint8_t msb; };
+  } buffer[BUFFER_LENGTH_UINT16];
+
+  //Fill the buffer with our color
+  buffer[0].lsb = color >> 8;
+  buffer[0].msb = color;
+  for (i = 1; i < BUFFER_LENGTH_UINT16; i++) {
+    buffer[i].val = buffer[0].val;
+  }
+
+  while (len > 0)
+  {
+    i = min(len, BUFFER_LENGTH_UINT16);
+    spi.transfer(buffer, NULL, (i * 2));
+    len = len - i;
+  }
 }
 
 /***************************************************************************************
 ** Function name:           pushPixels - for STM32
 ** Description:             Write a sequence of pixels
 ***************************************************************************************/
-void TFT_eSPI::pushPixels(const void* data_in, uint32_t len){
+void TFT_eSPI::pushPixels(const void* data_in, uint32_t len) {
 
   uint16_t *data = (uint16_t*)data_in;
 
-  if (_swapBytes) while ( len-- ) {tft_Write_16(*data); data++;}
-  else while ( len-- ) {tft_Write_16S(*data); data++;}
+  uint32_t transferLen;
+  uint32_t i;
+  union {
+    uint16_t val;
+    struct {
+      uint8_t lsb;
+      uint8_t msb; };
+  } buffer[BUFFER_LENGTH_UINT16];
+
+  if (_swapBytes) {
+    while (len > 0)
+    {
+      transferLen = min(len, BUFFER_LENGTH_UINT16);
+      for (i = 0; i < transferLen; i++)
+      {
+        buffer[i].lsb = *data >> 8;
+        buffer[i].msb = *data;
+        data++;
+      }
+      spi.transfer(buffer, NULL, (transferLen * 2));
+      len = len - transferLen;
+    }
+  } else {
+    spi.transfer(data, NULL, len);
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -160,19 +205,84 @@ void TFT_eSPI::pushPixels(const void* data_in, uint32_t len){
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
-////////////////////////////////////////////////////////////////////////////////////////
-//                                DMA FUNCTIONS                                         
-////////////////////////////////////////////////////////////////////////////////////////
+void tft_Write_8(uint8_t C) {
+  spi.transfer(&C, NULL, 1);
+}
 
-//                Placeholder for DMA functions
 
-/*
-Minimal function set to support DMA:
+void tft_Write_16(uint16_t C) {
+  union {
+    uint16_t val;
+    struct {
+      uint8_t lsb;
+      uint8_t msb; };
+    } t;
 
-bool TFT_eSPI::initDMA(void)
-void TFT_eSPI::deInitDMA(void)
-bool TFT_eSPI::dmaBusy(void)
-void TFT_eSPI::pushPixelsDMA(uint16_t* image, uint32_t len)
-void TFT_eSPI::pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t* image)
+  //Bit order in TFT_eSPI.c is MSBFIRST, so we need to swap bytes.
+  t.lsb = C >> 8;
+  t.msb = C;
 
-*/
+  spi.transfer(&t, NULL, 2);
+}
+
+
+void tft_Write_16S(uint16_t C) {
+  spi.transfer(&C, NULL, 2);
+}
+
+
+void tft_Write_32(uint32_t C) {
+  union {
+    uint32_t val;
+  struct {
+    uint8_t llsb;
+    uint8_t lmsb;
+    uint8_t ulsb;
+    uint8_t umsb;};
+  } t;
+
+  t.llsb = C >> 24;
+  t.lmsb = C >> 16;
+  t.ulsb = C >> 8;
+  t.umsb = C;
+
+  spi.transfer(&t, NULL, 4);
+}
+
+
+void tft_Write_32C(uint32_t C, uint32_t D) {
+  union {
+    uint32_t val;
+  struct {
+    uint8_t llsb;
+    uint8_t lmsb;
+    uint8_t ulsb;
+    uint8_t umsb;};
+  } t;
+
+  t.llsb = C >> 8;
+  t.lmsb = C;
+  t.ulsb = D >> 8;
+  t.umsb = D;
+
+  spi.transfer(&t, NULL, 4);
+}
+
+
+void tft_Write_32D(uint32_t C) {
+    union {
+    uint32_t val;
+  struct {
+    uint8_t llsb;
+    uint8_t lmsb;
+    uint8_t ulsb;
+    uint8_t umsb;};
+  } t;
+
+  t.llsb = C >> 8;
+  t.lmsb = C;
+  t.ulsb = C >> 8;
+  t.umsb = C;
+
+  spi.transfer(&t, NULL, 4);
+}

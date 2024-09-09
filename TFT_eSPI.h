@@ -29,7 +29,7 @@
 //Standard support
 #include <Arduino.h>
 #include <Print.h>
-#if !defined (TFT_PARALLEL_8_BIT) && !defined (RP2040_PIO_INTERFACE)
+#if !defined (TFT_PARALLEL_8_BIT) && !defined (RP2040_PIO_INTERFACE) //&& !defined (ARDUINO_NRF52_ADAFRUIT)
   #include <SPI.h>
 #endif
 /***************************************************************************************
@@ -105,7 +105,7 @@
   #include "Processors/TFT_eSPI_STM32.h"
 #elif defined(ARDUINO_ARCH_RP2040)
   #include "Processors/TFT_eSPI_RP2040.h"
-#elif defined (ARCH_NRF52)
+#elif defined (ARDUINO_NRF52_ADAFRUIT)
   #include "Processors/TFT_eSPI_NRF.h"
  #else
   #include "Processors/TFT_eSPI_Generic.h"
@@ -370,7 +370,7 @@ uint32_t setup_id;   // ID available to use in a user setup
 int32_t esp;         // Processor code
 uint8_t trans;       // SPI transaction support
 uint8_t serial;      // Serial (SPI) or parallel
-#if !defined(GENERIC_PROCESSOR) && !defined(ARCH_NRF52)
+#if !defined(GENERIC_PROCESSOR) && !defined(ARDUINO_NRF52_ADAFRUIT)
 uint8_t  port;       // SPI port
 #endif
 uint8_t overlap;     // ESP8266 overlap mode
