@@ -196,7 +196,7 @@ void TFT_eSPI::pushPixels(const void* data_in, uint32_t len) {
       len = len - transferLen;
     }
   } else {
-    spi.transfer(data, NULL, len);
+    spi.transfer(data, NULL, (len * 2));
   }
 }
 
